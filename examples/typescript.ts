@@ -1,10 +1,10 @@
 // Import the createClient function from the gremlin library
 import { createClient } from 'gremlin';
 // Import gremlin-helper classes and interfaces
-import { Client, Result, Model, Ops, IConfig, ISchema } from 'gremlin-helper';
+import { Client, Result, Model, Ops, IClientConfig, ISchema } from 'gremlin-helper';
 
 // Define your connection configuration
-const config: IConfig = {
+const config: IClientConfig = {
   endpoint: 'your.endpoint.without.prefix.com',
   port: 443,
   database: 'your-db',
@@ -31,7 +31,7 @@ const userSchema: ISchema<User> = {
       required: true
     },
     password: {
-      type: 'stirng',
+      type: 'string',
       required: true
     },
     // Or as just a type if they are not required

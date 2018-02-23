@@ -6,13 +6,20 @@ export type Result<T> = {
   id: string;
 } & T;
 
+// TODO: Add select options:
+//   - Add property == value
+//   - InEdge from Model
+//   - InEdge of type
+//   - OutEdge to Model
+//   - OutEdge of type
+
 export interface IClient {
   getAllAsync<T>(model: IModel<T>): Promise<Result<T>[]>;
   getByIdAsync<T>(model: IModel<T>, id: string): Promise<Result<T>>;
   executeQueryAsync<T>(model: IModel<T>, query: string): Promise<Result<T>[]>;
 }
 
-export interface IConfig {
+export interface IClientConfig {
   endpoint: string;
   port: number;
   database: string;
@@ -20,26 +27,10 @@ export interface IConfig {
   primaryKey: string;
 }
 
-function transformResult<T>(schema: ISchema<T>, value: GremlinResult<T>): Result<T> | null {
-  if (!value || schema.label !== value.label) return null;
-
-  const result: any = {
-    id: value.id
-  };
-
-  for (const prop in schema.props) {
-    if (prop in value.properties) {
-      result[prop] = value.properties[prop][0].value
-    }
-  }
-
-  return result as Result<T>;
-}
-
 export class Client implements IClient {
   private client: GremlinClient;
 
-  public constructor(createClient: GremlinCreateClient, config: IConfig) {
+  public constructor(createClient: GremlinCreateClient, config: IClientConfig) {
     this.client = createClient(
       config.port, 
       config.endpoint,
@@ -73,4 +64,20 @@ export class Client implements IClient {
       });
     });
   }
+}
+
+function transformResult<T>(schema: ISchema<T>, value: GremlinResult<T>): Result<T> | null {
+  if (!value || schema.label !== value.label) return null;
+
+  const result: any = {
+    id: value.id
+  };
+
+  for (const prop in schema.props) {
+    if (prop in value.properties) {
+      result[prop] = value.properties[prop][0].value
+    }
+  }
+
+  return result as Result<T>;
 }

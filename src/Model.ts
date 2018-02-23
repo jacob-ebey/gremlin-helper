@@ -1,4 +1,5 @@
 import { ISchema, IPropDef } from './Schema';
+import { ModelTypeOps, defaultTypeOps } from './TypeOps';
 
 export interface IOpResult<T> {
   error: string | null;
@@ -26,7 +27,7 @@ export interface IModel<T> {
 }
 
 export class Model<T> implements IModel<T> {
-  public constructor(public schema: ISchema<T>) {
+  public constructor(public schema: ISchema<T>, public types: ModelTypeOps = defaultTypeOps) {
   }
 
   public ops: ModelOps<T>;
@@ -51,6 +52,19 @@ export class Model<T> implements IModel<T> {
         : { type: this.schema.props[key] } as IPropDef;
 
       let value = key in obj ? obj[key] : undefined;
+
+      if (this.types && prop.type in this.types) {
+        const opResult = this.types[prop.type](prop, value);
+
+        if (opResult.error) {
+          result.hasErrors = true;
+          result.errors[key] = opResult.error;
+
+          continue;
+        }
+
+        value = opResult.value;
+      }
 
       if (this.ops && key in this.ops && typeof this.ops[key] === 'function') {
         const opResult = this.ops[key](prop, value);

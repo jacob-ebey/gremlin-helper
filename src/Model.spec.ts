@@ -18,7 +18,7 @@ export const userSchema: ISchema<User> = {
       required: true
     },
     password: {
-      type: 'stirng',
+      type: 'string',
       required: true
     },
     phone: 'string'
@@ -43,6 +43,24 @@ export class ModelTests {
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
+    Expect(result.model).toBeNull();
+  }
+
+  @Test()
+  @TestCase({
+    username: 'jacob',
+    password: 100
+  }, 'password')
+  @TestCase({
+    username: 100,
+    password: 'rofl',
+  }, 'username')
+  public processFailsForTypeMissmatch(value: null | undefined, wrongKey: string) {
+    const result = userModel.process(value);
+
+    Expect(result.hasErrors).toBe(true);
+    Expect(result.errors).toBeDefined();
+    Expect((result.errors as any)[wrongKey]).toBeTruthy();
     Expect(result.model).toBeNull();
   }
 
