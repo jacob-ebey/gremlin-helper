@@ -1,5 +1,5 @@
-import { IModel } from './Model';
-import { ISchema } from './Schema';
+import { INode } from './Node';
+import { INodeSchema } from './Schema';
 import { GremlinClient, GremlinCreateClient, GremlinResult } from 'gremlin';
 
 export type Result<T> = {
@@ -14,9 +14,9 @@ export type Result<T> = {
 //   - OutEdge of type
 
 export interface IClient {
-  getAllAsync<T>(model: IModel<T>): Promise<Result<T>[]>;
-  getByIdAsync<T>(model: IModel<T>, id: string): Promise<Result<T>>;
-  executeQueryAsync<T>(model: IModel<T>, query: string): Promise<Result<T>[]>;
+  getAllAsync<T>(model: INode<T>): Promise<Result<T>[]>;
+  getByIdAsync<T>(model: INode<T>, id: string): Promise<Result<T>>;
+  executeQueryAsync<T>(model: INode<T>, query: string): Promise<Result<T>[]>;
 }
 
 export interface IClientConfig {
@@ -43,19 +43,19 @@ export class Client implements IClient {
     );
   }
 
-  public getAllAsync<T>(model: IModel<T>): Promise<Result<T>[]> {
+  public getAllAsync<T>(model: INode<T>): Promise<Result<T>[]> {
     const query = 'g.V().has("label", label)';
     
     return this.executeQueryAsync(model, query, { label: model.schema.label });
   }
 
-  public async getByIdAsync<T>(model: IModel<T>, id: string): Promise<Result<T>> {
-    const results = await this.executeQueryAsync(model, 'g.V(id)', { id });
+  public async getByIdAsync<T>(model: INode<T>, id: string): Promise<Result<T> | null> {
+    const results = await this.executeQueryAsync<T>(model, 'g.V(id)', { id });
 
-    return results.length ? results[0] : null;
+    return results && results.length ? results[0] : null;
   }
 
-  public executeQueryAsync<T>(model: IModel<T>, query: string, params: any = {}): Promise<Result<T>[]> {
+  public executeQueryAsync<T>(model: INode<T>, query: string, params: any = {}): Promise<Result<T>[]> {
     return new Promise<Result<T>[]>((resolve, reject) => {
       this.client.execute<T>(query, params, (error: Error, results: GremlinResult<T>[]) => {
         if (error) return reject(error);
@@ -66,7 +66,7 @@ export class Client implements IClient {
   }
 }
 
-function transformResult<T>(schema: ISchema<T>, value: GremlinResult<T>): Result<T> | null {
+function transformResult<T>(schema: INodeSchema<T>, value: GremlinResult<T>): Result<T> | null {
   if (!value || schema.label !== value.label) return null;
 
   const result: any = {

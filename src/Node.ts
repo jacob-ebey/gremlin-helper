@@ -1,16 +1,6 @@
-import { ISchema, IPropDef } from './Schema';
+import { ModelOps } from './Ops';
+import { INodeSchema, IPropDef } from './Schema';
 import { ModelTypeOps, defaultTypeOps } from './TypeOps';
-
-export interface IOpResult<T> {
-  error: string | null;
-  value: T | null;
-}
-
-export type Op<T> = (prop: IPropDef, value: T) => IOpResult<T>;
-
-export type ModelOps<T> = {
-  [P in keyof T]?: Op<T[P]>;
-}
 
 export interface ProcessResult<T> {
   hasErrors: boolean;
@@ -20,14 +10,14 @@ export interface ProcessResult<T> {
   model: T | null;
 }
 
-export interface IModel<T> {
-  schema: ISchema<T>;
+export interface INode<T> {
+  schema: INodeSchema<T>;
   ops: ModelOps<T>;
   process(obj: any): ProcessResult<T>
 }
 
-export class Model<T> implements IModel<T> {
-  public constructor(public schema: ISchema<T>, public types: ModelTypeOps = defaultTypeOps) {
+export class Node<T> implements INode<T> {
+  public constructor(public schema: INodeSchema<T>, public types: ModelTypeOps = defaultTypeOps) {
   }
 
   public ops: ModelOps<T>;

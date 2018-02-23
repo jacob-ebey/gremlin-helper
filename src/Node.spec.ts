@@ -1,8 +1,9 @@
 import { Expect, Test, TestCase, TestFixture } from 'alsatian';
 
-import { ISchema } from './Schema';
+import { Edge } from './Edge';
+import { INodeSchema, IEdgeSchema } from './Schema';
 import { Ops } from './Ops';
-import { Model } from './Model';
+import { Node } from './Node';
 
 export interface User {
   username: string;
@@ -10,7 +11,7 @@ export interface User {
   phone?: string;
 }
 
-export const userSchema: ISchema<User> = {
+export const userSchema: INodeSchema<User> = {
   label: 'user',
   props: {
     username: {
@@ -23,23 +24,44 @@ export const userSchema: ISchema<User> = {
     },
     phone: 'string'
   }
-}
+};
 
-export const userModel = new Model(userSchema);
-userModel.ops = {
+export const userNode = new Node(userSchema);
+userNode.ops = {
   username: Ops.trim,
   phone: Ops.merge(Ops.validatePhone, Ops.formatPhone)
+};
+
+export interface Gateway {
+  name: string;
 }
+
+export const gatewaySchema: INodeSchema<Gateway> = {
+  label: 'gateway',
+  props: {
+    name: {
+      type: 'string',
+      required: true
+    }
+  }
+};
+
+export const gatewayModel = new Node(gatewaySchema);
+
+export const adminEdgeSchema: IEdgeSchema = {
+  label: 'admin'
+};
+export const adminEdge = new Edge(adminEdgeSchema);
 
 
 @TestFixture()
-export class ModelTests {
+export class NodeTests {
 
   @Test()
   @TestCase(null)
   @TestCase(undefined)
   public processFailsForNull(value: null | undefined) {
-    const result = userModel.process(value);
+    const result = userNode.process(value);
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
@@ -56,7 +78,7 @@ export class ModelTests {
     password: 'rofl',
   }, 'username')
   public processFailsForTypeMissmatch(value: null | undefined, wrongKey: string) {
-    const result = userModel.process(value);
+    const result = userNode.process(value);
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
@@ -88,7 +110,7 @@ export class ModelTests {
     }
   )
   public processSucceeds(value: any, expected: any) {
-    const result = userModel.process(value);
+    const result = userNode.process(value);
 
     Expect(result.errors).toBeNull();
     Expect(result.model).toEqual(expected);

@@ -1,5 +1,5 @@
 const { createClient } = require('gremlin');
-const { Client, Model, Ops } = require('gremlin-helper');
+const { Client, Node, Ops } = require('gremlin-helper');
 
 // Define your connection configuration
 const config = {
@@ -31,10 +31,10 @@ const userSchema = {
 }
 
 // Create a model from our schema
-const userModel = new Model(userSchema);
+const userNode = new Node(userSchema);
 
 // Add some ops that will execute before commiting to the database.
-userModel.ops = {
+userNode.ops = {
   // Some builtin ops such as trim are provided
   username: Ops.trim,
   // Ops can also be merged
@@ -45,7 +45,7 @@ userModel.ops = {
 const client = new Client(createClient, config);
 
 // Get all users from the graph
-client.getAllAsync(userModel)
+client.getAllAsync(userNode)
   .then((results) => {
     // Format and print
     console.log(JSON.stringify(results, null, 2));

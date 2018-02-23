@@ -1,7 +1,7 @@
 // Import the createClient function from the gremlin library
 import { createClient } from 'gremlin';
 // Import gremlin-helper classes and interfaces
-import { Client, Result, Model, Ops, IClientConfig, ISchema } from 'gremlin-helper';
+import { Client, Result, Node, Ops, IClientConfig, INodeSchema } from 'gremlin-helper';
 
 // Define your connection configuration
 const config: IClientConfig = {
@@ -20,7 +20,7 @@ interface User {
 }
 
 // Define our database schema
-const userSchema: ISchema<User> = {
+const userSchema: INodeSchema<User> = {
   // This is the label (type) of the node in the graph
   label: 'user',
   // Custom properties the node has
@@ -40,10 +40,10 @@ const userSchema: ISchema<User> = {
 }
 
 // Create a model from our schema
-const userModel = new Model(userSchema);
+const userNode = new Node(userSchema);
 
 // Add some ops that will execute before commiting to the database.
-userModel.ops = {
+userNode.ops = {
   // Some builtin ops such as trim are provided
   username: Ops.trim,
   // Ops can also be merged
@@ -54,7 +54,7 @@ userModel.ops = {
 const client = new Client(createClient, config);
 
 // Get all users from the graph
-client.getAllAsync(userModel)
+client.getAllAsync(userNode)
   .then((results: Result<User>[]) => {
     // Format and print
     console.log(JSON.stringify(results, null, 2));

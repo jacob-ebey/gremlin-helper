@@ -1,4 +1,4 @@
-import { Op, IOpResult } from './Model';
+import { Op, IOpResult } from './Ops';
 import { SchemaType } from './Schema';
 
 export type ModelTypeOps = {

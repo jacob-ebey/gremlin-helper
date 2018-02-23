@@ -1,9 +1,19 @@
 import { PhoneNumberUtil, PhoneNumberFormat } from 'google-libphonenumber';
 
-import { Op, IOpResult } from './Model';
 import { IPropDef } from './Schema';
 
 const phoneUtil = PhoneNumberUtil.getInstance();
+
+export interface IOpResult<T> {
+  error: string | null;
+  value: T | null;
+}
+
+export type Op<T> = (prop: IPropDef, value: T) => IOpResult<T>;
+
+export type ModelOps<T> = {
+  [P in keyof T]?: Op<T[P]>;
+}
 
 export class Ops {
   public static merge = <T>(...ops: Op<T>[]): Op<T> => {
