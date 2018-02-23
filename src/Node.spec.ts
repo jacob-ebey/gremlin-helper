@@ -46,7 +46,7 @@ export const gatewaySchema: INodeSchema<Gateway> = {
   }
 };
 
-export const gatewayModel = new Node(gatewaySchema);
+export const gatewayNode = new Node(gatewaySchema);
 
 export const adminEdgeSchema: IEdgeSchema = {
   label: 'admin'

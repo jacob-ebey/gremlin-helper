@@ -1,6 +1,7 @@
 import { INode } from './Node';
 import { INodeSchema } from './Schema';
 import { GremlinClient, GremlinCreateClient, GremlinResult } from 'gremlin';
+import { QueryBuilder } from './QueryBuilder';
 
 export type Result<T> = {
   id: string;
@@ -53,6 +54,18 @@ export class Client implements IClient {
     const results = await this.executeQueryAsync<T>(model, 'g.V(id)', { id });
 
     return results && results.length ? results[0] : null;
+  }
+
+  public executeAsync<T>(model: INode<T>, queryBuilder: QueryBuilder<T>) {
+    return new Promise<Result<T>[]>((resolve, reject) => {
+      console.log(queryBuilder.query + queryBuilder.postfix);
+
+      this.client.execute(queryBuilder.query + queryBuilder.postfix, queryBuilder.props, (error: Error, results: GremlinResult<T>[]) => {
+        if (error) return reject(error);
+
+        return resolve(results.map((result: GremlinResult<T>) => transformResult(model.schema, result)));
+      })
+    })
   }
 
   public executeQueryAsync<T>(model: INode<T>, query: string, params: any = {}): Promise<Result<T>[]> {

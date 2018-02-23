@@ -1,5 +1,7 @@
-const { createClient } = require('gremlin');
-const { Client, Node, Ops } = require('gremlin-helper');
+// Import the createClient function from the gremlin library
+import { createClient } from 'gremlin';
+// Import gremlin-helper classes and interfaces
+import { Client, QueryBuilder, Node, Edge, Ops } from 'gremlin-helper';
 
 // Define your connection configuration
 const config = {
@@ -41,14 +43,30 @@ userNode.ops = {
   phone: Ops.merge(Ops.validatePhone, Ops.formatPhone)
 }
 
+const friendSchema = {
+  label: 'friend'
+};
+
+const friendEdge = new Edge(friendSchema);
+
 // Create a client from our config using the default gremlin constructor
 const client = new Client(createClient, config);
 
-// Get all users from the graph
-client.getAllAsync(userNode)
+const getAllUsers = new QueryBuilder().getAll(userNode);
+
+const getUserFriends = new QueryBuilder().getAll(userNode).hasE(friendEdge).toOrFrom(userNode, '2');
+
+client.executeAsync(userNode, getAllUsers)
   .then((results) => {
-    // Format and print
     console.log(JSON.stringify(results, null, 2));
+
+    client.executeAsync(userNode, getUserFriends)
+      .then((results) => {
+        console.log(JSON.stringify(results, null, 2));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   })
   .catch((err) => {
     console.log(err);

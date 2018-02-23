@@ -1,7 +1,7 @@
 // Import the createClient function from the gremlin library
 import { createClient } from 'gremlin';
 // Import gremlin-helper classes and interfaces
-import { Client, Result, Node, Ops, IClientConfig, INodeSchema } from 'gremlin-helper';
+import { Client, QueryBuilder, Result, Node, Edge, Ops, IClientConfig, INodeSchema, IEdgeSchema } from 'gremlin-helper';
 
 // Define your connection configuration
 const config: IClientConfig = {
@@ -50,14 +50,30 @@ userNode.ops = {
   phone: Ops.merge(Ops.validatePhone, Ops.formatPhone)
 }
 
+const friendSchema: IEdgeSchema = {
+  label: 'friend'
+};
+
+const friendEdge = new Edge(friendSchema);
+
 // Create a client from our config using the default gremlin constructor
 const client = new Client(createClient, config);
 
-// Get all users from the graph
-client.getAllAsync(userNode)
+const getAllUsers = new QueryBuilder().getAll(userNode);
+
+const getUserFriends = new QueryBuilder().getAll(userNode).hasE(friendEdge).toOrFrom(userNode, '2');
+
+client.executeAsync(userNode, getAllUsers)
   .then((results: Result<User>[]) => {
-    // Format and print
     console.log(JSON.stringify(results, null, 2));
+
+    client.executeAsync(userNode, getUserFriends)
+      .then((results: Result<User>[]) => {
+        console.log(JSON.stringify(results, null, 2));
+      })
+      .catch((err: Error) => {
+        console.log(err);
+      });
   })
   .catch((err: Error) => {
     console.log(err);
