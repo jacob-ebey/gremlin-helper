@@ -1,0 +1,27 @@
+{
+  "name": "gremlin-helper",
+  "version": "0.0.1-alpha",
+  "description": "A wrapper around the gremlin client to introduce model validation and other useful functionality to use within a web api.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --outDir test --experimentalDecorators --lib es2015 ./test.ts && node test/test.js",
+    "test": "tsc --p tsconfig.spec.json && alsatian './test/**/*.spec.js'"
+  },
+  "keywords": [
+    "Gremlin",
+    "Node",
+    "Express"
+  ],
+  "author": "Jacob Ebey",
+  "license": "ISC",
+  "dependencies": {
+    "google-libphonenumber": "^3.0.12",
+    "gremlin": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/google-libphonenumber": "^7.4.14",
+    "alsatian": "^2.2.1",
+    "typescript": "^2.7.2"
+  }
+}
