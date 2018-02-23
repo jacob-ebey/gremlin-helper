@@ -45,7 +45,7 @@ const userSchema: ISchema<User> = {
       required: true
     },
     password: {
-      type: 'stirng',
+      type: 'string',
       required: true
     },
     // Or as just a type if they are not required
