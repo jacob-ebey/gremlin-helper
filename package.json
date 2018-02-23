@@ -3,6 +3,7 @@
   "version": "0.0.1-alpha",
   "description": "A wrapper around the gremlin client to introduce model validation and other useful functionality to use within a web api.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --outDir test --experimentalDecorators --lib es2015 ./test.ts && node test/test.js",
