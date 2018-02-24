@@ -89,8 +89,6 @@ export class Client implements IClient {
 
   public executeAsync<T>(model: IVertex<T> | IEdge<T>, queryBuilder: QueryBuilder<T>): Promise<Result<T>[]> {
     return new Promise<Result<T>[]>((resolve, reject) => {
-      console.log(queryBuilder.query + queryBuilder.postfix);
-
       this.client.execute(queryBuilder.query + queryBuilder.postfix, queryBuilder.props, (error: Error, results: GremlinResult<T>[]) => {
         if (error) return reject(error);
 

@@ -1,9 +1,10 @@
-examples/
+example/
 node_modules/
 test/
 src/
-tsconfig.json
-tsconfig.spec.json
+
 .gitignore
 .npmignore
 test.ts
+tsconfig.json
+tsconfig.spec.json

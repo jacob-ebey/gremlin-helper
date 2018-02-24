@@ -83,7 +83,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public getAll(node: IVertex<T>): QueryBuilder<T> {
+  public getAllV(node: IVertex<T>): QueryBuilder<T> {
     if (this.query) {
       throw new Error('getAll must be used as the first call.');
     }

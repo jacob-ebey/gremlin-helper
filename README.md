@@ -7,99 +7,52 @@ A wrapper around the gremlin client to introduce model validation and other usef
 - Retrieve models in a workable format
 - Mockable for testing
 
-## Usage
+## Example
 
-The best way to use gremlin-helper is with TypeScript:
+The best way to use gremlin-helper is with TypeScript: https://github.com/jacob-ebey/gremlin-helper-example
 
 ```typescript
-// Import the createClient function from the gremlin library
 import { createClient } from 'gremlin';
-// Import gremlin-helper classes and interfaces
-import {
-  Client,
-  IClientConfig,
-  Result,
-  QueryBuilder,
-  Ops,
-  Vertex,
-  IVertexSchema,
-  Edge,
-  IEdgeSchema
-} from 'gremlin-helper';
+import { Client, QueryBuilder } from 'gremlin-helper';
 
-// Define your connection configuration
-const config: IClientConfig = {
-  endpoint: 'your.endpoint.without.prefix.com',
-  port: 443,
-  database: 'your-db',
-  collection: 'your-collection',
-  primaryKey: 'YourPrimaryKeyGoesHere=='
-};
+import { config } from './config';
+import { LocationVertex, UserVertex, VisitedEdge } from './models';
 
-// Define our user model interface
-interface User {
-  username: string;
-  password: string;
-  phone?: string;
+const client: Client = new Client(createClient, config);
+
+async function run() {
+  console.log('\nCreating elements...');
+  const user1 = await client.addVAsync(UserVertex, { name: 'user1', password: 'pass1' });
+  const user2 = await client.addVAsync(UserVertex, { name: 'user2', password: 'pass2' });
+  const park = await client.addVAsync(LocationVertex, { name: 'Central Park', latitude: 40.781921, longitude: -73.965542 });
+  const museum = await client.addVAsync(LocationVertex, { name: 'The Metropolitan Museum of Art', latitude: 40.779385, longitude: -73.963192 });
+
+  console.log('\nCreating edges...');
+  await client.addEAsync(VisitedEdge, user1.id, park.id);
+  await client.addEAsync(VisitedEdge, user1.id, museum.id);
+  await client.addEAsync(VisitedEdge, user2.id, park.id);
+
+  console.log('\nGetting data...');
+
+  const parkVisitorsQuery = new QueryBuilder().getAllV(UserVertex).hasOutE(VisitedEdge).to(LocationVertex, park.id);
+  const parkVisitors = await client.executeAsync(UserVertex, parkVisitorsQuery);
+  console.log('\nPark Visitors:');
+  console.log(JSON.stringify(parkVisitors, null, 2));
+
+  const museumVisitorsQuery = new QueryBuilder().getAllV(UserVertex).hasOutE(VisitedEdge).to(LocationVertex, museum.id);
+  const museumVisitors = await client.executeAsync(UserVertex, museumVisitorsQuery);
+  console.log('\nMuseum Visitors');
+  console.log(JSON.stringify(museumVisitors, null, 2));
+
+  console.log('\nCleaning up database...');
+  await client.deleteVAsync(UserVertex, user1.id);
+  await client.deleteVAsync(UserVertex, user2.id);
+  await client.deleteVAsync(LocationVertex, park.id);
+  await client.deleteVAsync(LocationVertex, museum.id);
+
+  console.log('\nDone...');
 }
 
-// Define our database schema
-const userSchema: IVertexSchema<User> = {
-  // This is the label (type) of the node in the graph
-  label: 'user',
-  // Custom properties the node has
-  props: {
-    // They can be defined as objects to mark as required
-    username: {
-      type: 'string',
-      required: true
-    },
-    password: {
-      type: 'string',
-      required: true
-    },
-    // Or as just a type if they are not required
-    phone: 'string'
-  }
-}
+run().catch(err => console.log(err));
 
-// Create a model from our schema
-const userVertex = new Vertex(userSchema);
-
-// Add some ops that will execute before commiting to the database.
-userVertex.ops = {
-  // Some builtin ops such as trim are provided
-  username: Ops.trim,
-  // Ops can also be merged
-  phone: Ops.merge(Ops.validatePhone, Ops.formatPhone)
-}
-
-const friendSchema: IEdgeSchema = {
-  label: 'friend'
-};
-
-const friendEdge = new Edge(friendSchema);
-
-// Create a client from our config using the default gremlin constructor
-const client = new Client(createClient, config);
-
-const getAllUsers = new QueryBuilder().getAll(userVertex);
-
-const getUserFriends = new QueryBuilder().getAll(userVertex).hasE(friendEdge).toOrFrom(userVertex, '2');
-
-client.executeAsync(userVertex, getAllUsers)
-  .then((results: Result<User>[]) => {
-    console.log(JSON.stringify(results, null, 2));
-
-    client.executeAsync(userVertex, getUserFriends)
-      .then((results: Result<User>[]) => {
-        console.log(JSON.stringify(results, null, 2));
-      })
-      .catch((err: Error) => {
-        console.log(err);
-      });
-  })
-  .catch((err: Error) => {
-    console.log(err);
-  });
 ```
