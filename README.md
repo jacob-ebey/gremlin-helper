@@ -2,57 +2,106 @@ A wrapper around the gremlin client to introduce model validation and other usef
 
 ## Features
 
-- Full TypeScript definitions
 - Model schemas
 - Retrieve models in a workable format
 - Mockable for testing
 
-## Example
+## Getting Started
 
-The best way to use gremlin-helper is with TypeScript: https://github.com/jacob-ebey/gremlin-helper-example
+Install from NPM: https://www.npmjs.com/package/gremlin-helper
+
+```
+> npm install --save gremlin gremlin-helper
+```
+
+Create a vertex model
+
+```typescript
+import { Vertex } from 'gremlin-helper';
+
+interface IPerson {
+  name: string;
+  phone?: string;
+}
+
+const PersonVertex = new Vertex<IPerson>({
+  label: 'user',
+  props: {
+    name: {
+      type: 'string',
+      required: true
+    },
+    phone: 'string'
+  }
+});
+```
+
+Add some pre-commit operations
+
+```typescript
+import { Ops } from 'gremlin-helper';
+
+PersonVertex.ops = {
+  phone: Ops.merge(
+    Ops.validatePhone,
+    Ops.formatPhone
+  )
+}
+```
+
+Create an edge model
+
+```typescript
+import { Edge } from 'gremlin-helper';
+
+const FriendEdge = new Edge({ label: 'friend' })
+```
+
+Create a client
 
 ```typescript
 import { createClient } from 'gremlin';
-import { Client, QueryBuilder } from 'gremlin-helper';
+import { Client } from 'gremlin-helper';
 
-import { config } from './config';
-import { LocationVertex, UserVertex, VisitedEdge } from './models';
+const client = new Client(createClient, config);
+```
 
-const client: Client = new Client(createClient, config);
+Create some people
 
-async function run() {
-  console.log('\nCreating elements...');
-  const user1 = await client.addVAsync(UserVertex, { name: 'user1', password: 'pass1' });
-  const user2 = await client.addVAsync(UserVertex, { name: 'user2', password: 'pass2' });
-  const park = await client.addVAsync(LocationVertex, { name: 'Central Park', latitude: 40.781921, longitude: -73.965542 });
-  const museum = await client.addVAsync(LocationVertex, { name: 'The Metropolitan Museum of Art', latitude: 40.779385, longitude: -73.963192 });
+```typescript
+const person1 = await client.addVAsync(PersonVertex, {
+  name: 'Person 1',
+  phone: '800273 8255'
+});
 
-  console.log('\nCreating edges...');
-  await client.addEAsync(VisitedEdge, user1.id, park.id);
-  await client.addEAsync(VisitedEdge, user1.id, museum.id);
-  await client.addEAsync(VisitedEdge, user2.id, park.id);
+const person2 = await client.addVAsync(PersonVertex, {
+  name: 'Person 2'
+});
 
-  console.log('\nGetting data...');
+const person3 = await client.addVAsync(PersonVertex, {
+  name: 'Person 3'
+});
+```
 
-  const parkVisitorsQuery = new QueryBuilder().getAllV(UserVertex).hasOutE(VisitedEdge).to(LocationVertex, park.id);
-  const parkVisitors = await client.executeAsync(UserVertex, parkVisitorsQuery);
-  console.log('\nPark Visitors:');
-  console.log(JSON.stringify(parkVisitors, null, 2));
+Create some friend edges
 
-  const museumVisitorsQuery = new QueryBuilder().getAllV(UserVertex).hasOutE(VisitedEdge).to(LocationVertex, museum.id);
-  const museumVisitors = await client.executeAsync(UserVertex, museumVisitorsQuery);
-  console.log('\nMuseum Visitors');
-  console.log(JSON.stringify(museumVisitors, null, 2));
+```typescript
+// Person 1 friends person 2
+await client.addEAsync(FriendEdge, person1.id, person2.id);
+// Person 3 friends person 1
+await client.addEAsync(FriendEdge, person3.id, person1.id);
+```
 
-  console.log('\nCleaning up database...');
-  await client.deleteVAsync(UserVertex, user1.id);
-  await client.deleteVAsync(UserVertex, user2.id);
-  await client.deleteVAsync(LocationVertex, park.id);
-  await client.deleteVAsync(LocationVertex, museum.id);
+Get all of person1 friends
+```typescript
+import { QueryBuilder } from 'gremlin-helper';
 
-  console.log('\nDone...');
-}
+// Build a query to get all people that have friended, or have been
+// friended by person1
+const query = new QueryBuilder()
+  .getAllV(PersonVertex)
+  .hasE(FriendEdge)
+  .toOrFrom(PersonVertex, person1.id);
 
-run().catch(err => console.log(err));
-
+const friends = await client.executeAsync(PersonVertex, query);
 ```

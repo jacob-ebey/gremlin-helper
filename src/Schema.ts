@@ -7,9 +7,9 @@ export interface IPropDef {
 
 export type PropDef = SchemaType | IPropDef;
 
-export interface IVertexSchema<T> {
+export interface IVertexSchema<T = void> {
   label: string;
-  props: {
+  props?: {
     [P in keyof T]: PropDef;
   }
 }

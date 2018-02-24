@@ -10,13 +10,13 @@ export interface ProcessResult<T> {
   model: T | null;
 }
 
-export interface IVertex<T> {
+export interface IVertex<T = void> {
   schema: IVertexSchema<T>;
   ops: ModelOps<T>;
   process(obj: any): ProcessResult<T>
 }
 
-export class Vertex<T> implements IVertex<T> {
+export class Vertex<T = void> implements IVertex<T> {
   public constructor(public schema: IVertexSchema<T>, public types: ModelTypeOps = defaultTypeOps) {
   }
 
