@@ -8,7 +8,7 @@ import {
   QueryBuilder,
   Ops,
   Vertex,
-  INodeSchema,
+  IVertexSchema,
   Edge,
   IEdgeSchema
 } from 'gremlin-helper';
@@ -30,7 +30,7 @@ interface User {
 }
 
 // Define our database schema
-const userSchema: INodeSchema<User> = {
+const userSchema: IVertexSchema<User> = {
   // This is the label (type) of the node in the graph
   label: 'user',
   // Custom properties the node has
