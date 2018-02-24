@@ -1,5 +1,5 @@
-import { Node } from './Node';
-import { Edge } from './Edge';
+import { IEdge } from './Edge';
+import { IVertex } from './Vertex';
 
 export class QueryBuilder<T = {}> {
   private prop: number = 0;
@@ -7,7 +7,48 @@ export class QueryBuilder<T = {}> {
   public query: string;
   public postfix: string = '';
 
-  public getAll<T>(node: Node<T>): QueryBuilder<T> {
+  public addV(node: IVertex<T>): QueryBuilder<T> {
+    if (this.query) {
+      throw new Error('addV must be used as the first call.');
+    }
+
+    const label = this.getProp();
+    this.query = `g.addV(${label})`;
+    this.props[label] = node.schema.label;
+
+    return this;
+  }
+
+  public properties(obj: T): QueryBuilder<T> {
+    if (!this.query) {
+      throw new Error('props can not be used as the first call.');
+    }
+
+    for (const key in obj) {
+      const keyProp = this.getProp();
+      const valueProp = this.getProp();
+      this.query = `${this.query}.property(${keyProp}, ${valueProp})`;
+      this.props[keyProp] = key;
+      this.props[valueProp] = obj[key];
+    }
+
+    return this;
+  }
+
+  public get(id: string): QueryBuilder<T> {
+    if (this.query) {
+      throw new Error('getAll must be used as the first call.');
+    }
+
+    const idProp = this.getProp();
+    this.query = `g.V(${idProp}).as('x')`
+    this.postfix = `.select('x')`;
+    this.props[idProp] = id;
+
+    return this;
+  }
+
+  public getAll(node: IVertex<T>): QueryBuilder<T> {
     if (this.query) {
       throw new Error('getAll must be used as the first call.');
     }
@@ -20,7 +61,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public hasE(edge: Edge): QueryBuilder<T> {
+  public hasE(edge: IEdge): QueryBuilder<T> {
     if (!this.query) {
       throw new Error('hasE can not be used as the first call.');
     }
@@ -32,7 +73,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public toOrFrom<T2>(node: Node<T2>, id?: string): QueryBuilder<T> {
+  public toOrFrom<T2>(node: IVertex<T2>, id?: string): QueryBuilder<T> {
     if (!this.query) {
       throw new Error('to can not be used as the first call.');
     }
@@ -50,7 +91,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public hasOutE(edge: Edge): QueryBuilder<T> {
+  public hasOutE(edge: IEdge): QueryBuilder<T> {
     if (!this.query) {
       throw new Error('hasOutE can not be used as the first call.');
     }
@@ -62,7 +103,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public to<T2>(node: Node<T2>, id?: string): QueryBuilder<T> {
+  public to<T2>(node: IVertex<T2>, id?: string): QueryBuilder<T> {
     if (!this.query) {
       throw new Error('to can not be used as the first call.');
     }
@@ -80,7 +121,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public hasInE(edge: Edge): QueryBuilder<T> {
+  public hasInE(edge: IEdge): QueryBuilder<T> {
     if (!this.query) {
       throw new Error('hasInE can not be used as the first call.');
     }
@@ -92,7 +133,7 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public from<T2>(node: Node<T2>, id?: string): QueryBuilder<T> {
+  public from<T2>(node: IVertex<T2>, id?: string): QueryBuilder<T> {
     if (!this.query) {
       throw new Error('from can not be used as the first call.');
     }

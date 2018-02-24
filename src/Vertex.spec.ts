@@ -1,9 +1,9 @@
 import { Expect, Test, TestCase, TestFixture } from 'alsatian';
 
 import { Edge } from './Edge';
-import { INodeSchema, IEdgeSchema } from './Schema';
+import { IVertexSchema, IEdgeSchema } from './Schema';
 import { Ops } from './Ops';
-import { Node } from './Node';
+import { Vertex } from './Vertex';
 
 export interface User {
   username: string;
@@ -11,7 +11,7 @@ export interface User {
   phone?: string;
 }
 
-export const userSchema: INodeSchema<User> = {
+export const userSchema: IVertexSchema<User> = {
   label: 'user',
   props: {
     username: {
@@ -26,7 +26,7 @@ export const userSchema: INodeSchema<User> = {
   }
 };
 
-export const userNode = new Node(userSchema);
+export const userNode = new Vertex(userSchema);
 userNode.ops = {
   username: Ops.trim,
   phone: Ops.merge(Ops.validatePhone, Ops.formatPhone)
@@ -36,7 +36,7 @@ export interface Gateway {
   name: string;
 }
 
-export const gatewaySchema: INodeSchema<Gateway> = {
+export const gatewaySchema: IVertexSchema<Gateway> = {
   label: 'gateway',
   props: {
     name: {
@@ -46,7 +46,7 @@ export const gatewaySchema: INodeSchema<Gateway> = {
   }
 };
 
-export const gatewayNode = new Node(gatewaySchema);
+export const gatewayNode = new Vertex(gatewaySchema);
 
 export const adminEdgeSchema: IEdgeSchema = {
   label: 'admin'
@@ -55,7 +55,7 @@ export const adminEdge = new Edge(adminEdgeSchema);
 
 
 @TestFixture()
-export class NodeTests {
+export class VertexTests {
 
   @Test()
   @TestCase(null)

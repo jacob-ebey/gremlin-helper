@@ -7,7 +7,7 @@ export interface IPropDef {
 
 export type PropDef = SchemaType | IPropDef;
 
-export interface INodeSchema<T> {
+export interface IVertexSchema<T> {
   label: string;
   props: {
     [P in keyof T]: PropDef;

@@ -1,5 +1,5 @@
 import { ModelOps } from './Ops';
-import { INodeSchema, IPropDef } from './Schema';
+import { IVertexSchema, IPropDef } from './Schema';
 import { ModelTypeOps, defaultTypeOps } from './TypeOps';
 
 export interface ProcessResult<T> {
@@ -10,14 +10,14 @@ export interface ProcessResult<T> {
   model: T | null;
 }
 
-export interface INode<T> {
-  schema: INodeSchema<T>;
+export interface IVertex<T> {
+  schema: IVertexSchema<T>;
   ops: ModelOps<T>;
   process(obj: any): ProcessResult<T>
 }
 
-export class Node<T> implements INode<T> {
-  public constructor(public schema: INodeSchema<T>, public types: ModelTypeOps = defaultTypeOps) {
+export class Vertex<T> implements IVertex<T> {
+  public constructor(public schema: IVertexSchema<T>, public types: ModelTypeOps = defaultTypeOps) {
   }
 
   public ops: ModelOps<T>;

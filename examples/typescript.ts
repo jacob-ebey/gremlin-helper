@@ -1,7 +1,17 @@
 // Import the createClient function from the gremlin library
 import { createClient } from 'gremlin';
 // Import gremlin-helper classes and interfaces
-import { Client, QueryBuilder, Result, Node, Edge, Ops, IClientConfig, INodeSchema, IEdgeSchema } from 'gremlin-helper';
+import {
+  Client,
+  IClientConfig,
+  Result,
+  QueryBuilder,
+  Ops,
+  Vertex,
+  INodeSchema,
+  Edge,
+  IEdgeSchema
+} from 'gremlin-helper';
 
 // Define your connection configuration
 const config: IClientConfig = {
@@ -40,10 +50,10 @@ const userSchema: INodeSchema<User> = {
 }
 
 // Create a model from our schema
-const userNode = new Node(userSchema);
+const userVertex = new Vertex(userSchema);
 
 // Add some ops that will execute before commiting to the database.
-userNode.ops = {
+userVertex.ops = {
   // Some builtin ops such as trim are provided
   username: Ops.trim,
   // Ops can also be merged
@@ -59,15 +69,15 @@ const friendEdge = new Edge(friendSchema);
 // Create a client from our config using the default gremlin constructor
 const client = new Client(createClient, config);
 
-const getAllUsers = new QueryBuilder().getAll(userNode);
+const getAllUsers = new QueryBuilder().getAll(userVertex);
 
-const getUserFriends = new QueryBuilder().getAll(userNode).hasE(friendEdge).toOrFrom(userNode, '2');
+const getUserFriends = new QueryBuilder().getAll(userVertex).hasE(friendEdge).toOrFrom(userVertex, '2');
 
-client.executeAsync(userNode, getAllUsers)
+client.executeAsync(userVertex, getAllUsers)
   .then((results: Result<User>[]) => {
     console.log(JSON.stringify(results, null, 2));
 
-    client.executeAsync(userNode, getUserFriends)
+    client.executeAsync(userVertex, getUserFriends)
       .then((results: Result<User>[]) => {
         console.log(JSON.stringify(results, null, 2));
       })
