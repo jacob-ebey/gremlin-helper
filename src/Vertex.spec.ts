@@ -26,8 +26,8 @@ export const userSchema: IVertexSchema<User> = {
   }
 };
 
-export const userNode = new Vertex(userSchema);
-userNode.ops = {
+export const userVertex = new Vertex(userSchema);
+userVertex.ops = {
   username: Ops.trim,
   phone: Ops.merge(Ops.validatePhone, Ops.formatPhone)
 };
@@ -46,7 +46,7 @@ export const gatewaySchema: IVertexSchema<Gateway> = {
   }
 };
 
-export const gatewayNode = new Vertex(gatewaySchema);
+export const gatewayVertex = new Vertex(gatewaySchema);
 
 export const adminEdgeSchema: IEdgeSchema = {
   label: 'admin'
@@ -61,7 +61,7 @@ export class VertexTests {
   @TestCase(null)
   @TestCase(undefined)
   public processFailsForNull(value: null | undefined) {
-    const result = userNode.process(value);
+    const result = userVertex.process(value);
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
@@ -78,7 +78,7 @@ export class VertexTests {
     password: 'rofl',
   }, 'username')
   public processFailsForTypeMissmatch(value: null | undefined, wrongKey: string) {
-    const result = userNode.process(value);
+    const result = userVertex.process(value);
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
@@ -109,8 +109,18 @@ export class VertexTests {
       phone: '+1 206-578-7230'
     }
   )
+  @TestCase(
+    {
+      username: ' jacob ',
+      password: 'rofl',
+    },
+    {
+      username: 'jacob',
+      password: 'rofl'
+    }
+  )
   public processSucceeds(value: any, expected: any) {
-    const result = userNode.process(value);
+    const result = userVertex.process(value);
 
     Expect(result.errors).toBeNull();
     Expect(result.model).toEqual(expected);

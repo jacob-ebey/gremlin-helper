@@ -1,6 +1,6 @@
 {
   "name": "gremlin-helper",
-  "version": "0.0.10-alpha",
+  "version": "0.0.12-alpha",
   "description": "A wrapper around the gremlin client to introduce model validation and other useful functionality to use within a web api.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,14 +23,16 @@
   "bugs": {
     "url": "https://github.com/jacob-ebey/gremlin-helper/issues"
   },
-  "dependencies": {
+  "peerDependencies": {
     "google-libphonenumber": "^3.0.12",
     "gremlin": "^2.7.0"
   },
   "devDependencies": {
     "@types/google-libphonenumber": "^7.4.14",
+    "google-libphonenumber": "^3.0.12",
+    "gremlin": "^2.7.0",
+    "gremlin-helper": "^0.0.12-alpha",
     "alsatian": "^2.2.1",
-    "gremlin-helper": "^0.0.10-alpha",
     "typescript": "^2.7.2"
   }
 }

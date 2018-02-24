@@ -1,24 +1,23 @@
-import { IVertex } from './Vertex';
-import { IVertexSchema } from './Schema';
 import { GremlinClient, GremlinCreateClient, GremlinResult } from 'gremlin';
+
+import { IEdge } from './Edge';
 import { QueryBuilder } from './QueryBuilder';
+import { IVertexSchema, IEdgeSchema } from './Schema';
+import { IVertex } from './Vertex';
 
 export type Result<T> = {
   id: string;
+  _label: string;
+  _type: string;
 } & T;
 
-// TODO: Add select options:
-//   - Add property == value
-//   - InEdge from Model
-//   - InEdge of type
-//   - OutEdge to Model
-//   - OutEdge of type
-
 export interface IClient {
-  addAsync<T>(model: IVertex<T>, obj: T): Promise<Result<T>>;
-  getAsync<T>(model: IVertex<T>, id: string): Promise<Result<T>>;
+  addEAsync(edge: IEdge, from: string, to: string): Promise<void>;
+  addVAsync<T>(vertex: IVertex<T>, obj: T): Promise<Result<T>>;
+  deleteVAsync<T>(vertex: IVertex<T>, id: string): Promise<void>;
+  getVAsync<T>(vertex: IVertex<T>, id: string): Promise<Result<T>>;
 
-  executeAsync<T>(model: IVertex<T>, queryBuilder: QueryBuilder<T>): Promise<Result<T>[]>;
+  executeAsync<T>(model: IVertex<T> | IEdge<T>, queryBuilder: QueryBuilder<T>): Promise<Result<T>[]>;
 }
 
 export interface IClientConfig {
@@ -45,65 +44,76 @@ export class Client implements IClient {
     );
   }
 
-  public async addAsync<T>(node: IVertex<T>, obj: T): Promise<Result<T>> {
-    return new Promise<Result<T>>(async (resolve, reject) => {
-      const { errors, hasErrors, model } = node.process(obj);
+  public async addEAsync<T>(edge: IEdge<T>, from: string, to: string): Promise<Result<T>> {
+    const query = new QueryBuilder<T>().addE(edge, from, to);
 
-      if (hasErrors) return reject(errors);
+    const results = await this.executeAsync(edge, query);
 
-      const query = new QueryBuilder<T>().addV(node).properties(model);
+    if (results && results.length > 0) return results[0];
 
-      try {
-        const results = await this.executeAsync(node, query);
-
-        if (results && results.length > 0) return resolve(results[0]);
-
-        return reject('No model returned');
-      } catch (error) {
-        return reject(error);
-      }
-    })
+    throw new Error('No model returned');
   }
 
-  public async getAsync<T>(node: IVertex<T>, id: string): Promise<Result<T>> {
-    return new Promise<Result<T>>(async (resolve, reject) => {
-      const query = new QueryBuilder<T>().get(id);
+  public async addVAsync<T>(vertex: IVertex<T>, obj: T): Promise<Result<T>> {
+    const { errors, hasErrors, model } = vertex.process(obj);
 
-      try {
-        const results = await this.executeAsync(node, query);
+    if (hasErrors) throw {
+      ...(errors as any),
+      message: 'Error processing model'
+    };
 
-        if (results && results.length > 0) return resolve(results[0]);
+    const query = new QueryBuilder<T>().addV(vertex).properties(model);
 
-        return reject('No model returned');
-      } catch (error) {
-        return reject(error);
-      }
-    })
+    const results = await this.executeAsync(vertex, query);
+
+    if (results && results.length > 0) return results[0];
+
+    throw new Error('No model returned');
   }
 
-  public executeAsync<T>(node: IVertex<T>, queryBuilder: QueryBuilder<T>): Promise<Result<T>[]> {
+  public async deleteVAsync<T>(vertex: IVertex<T>, id: string): Promise<void> {
+    const query = new QueryBuilder<T>().deleteV(vertex, id);
+
+    await this.executeAsync(vertex, query);
+  }
+
+  public async getVAsync<T>(vertex: IVertex<T>, id: string): Promise<Result<T>> {
+    const query = new QueryBuilder<T>().getV(vertex, id);
+
+    const results = await this.executeAsync(vertex, query);
+
+    if (results && results.length > 0) return results[0];
+
+    throw new Error('No model returned');
+  }
+
+  public executeAsync<T>(model: IVertex<T> | IEdge<T>, queryBuilder: QueryBuilder<T>): Promise<Result<T>[]> {
     return new Promise<Result<T>[]>((resolve, reject) => {
       console.log(queryBuilder.query + queryBuilder.postfix);
 
       this.client.execute(queryBuilder.query + queryBuilder.postfix, queryBuilder.props, (error: Error, results: GremlinResult<T>[]) => {
         if (error) return reject(error);
 
-        return resolve(results.map((result: GremlinResult<T>) => transformResult(node.schema, result)));
+        return resolve(results.map((result: GremlinResult<T>) => transformResult(model.schema, result)));
       })
     })
   }
 }
 
-function transformResult<T>(schema: IVertexSchema<T>, value: GremlinResult<T>): Result<T> | null {
+function transformResult<T>(schema: IVertexSchema<T> | IEdgeSchema<T>, value: GremlinResult<T>): Result<T> | null {
   if (!value || schema.label !== value.label) return null;
 
-  const result: any = {
-    id: value.id
+  const result: Result<T> | { [key: string]: any } = {
+    id: value.id,
+    _type: value.type,
+    _label: value.label
   };
 
-  for (const prop in schema.props) {
-    if (prop in value.properties) {
-      result[prop] = value.properties[prop][0].value
+  if (schema.props) {
+    for (const prop in schema.props) {
+      if (prop in value.properties) {
+        result[prop] = (value.properties as any)[prop][0].value
+      }
     }
   }
 

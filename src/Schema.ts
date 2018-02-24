@@ -14,6 +14,9 @@ export interface IVertexSchema<T> {
   }
 }
 
-export interface IEdgeSchema {
+export interface IEdgeSchema<T = void> {
   label: string;
+  props?: {
+    [P in keyof T]: PropDef;
+  }
 }

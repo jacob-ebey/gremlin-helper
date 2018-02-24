@@ -3,9 +3,12 @@ import { IVertex } from './Vertex';
 
 export class QueryBuilder<T = {}> {
   private prop: number = 0;
-  public props: any = {};
-  public query: string;
-  public postfix: string = '';
+
+  public constructor(
+    public query?: string,
+    public props: any = {},
+    public postfix: string = ''
+  ) { }
 
   public addV(node: IVertex<T>): QueryBuilder<T> {
     if (this.query) {
@@ -15,6 +18,22 @@ export class QueryBuilder<T = {}> {
     const label = this.getProp();
     this.query = `g.addV(${label})`;
     this.props[label] = node.schema.label;
+
+    return this;
+  }
+
+  public addE(edge: IEdge<T>, from: string, to: string): QueryBuilder<T> {
+    if (this.query) {
+      throw new Error('addE must be used as the first call.');
+    }
+
+    const label = this.getProp();
+    const fromProp = this.getProp();
+    const toProp = this.getProp();
+    this.query = `g.V(${fromProp}).addE(${label}).to(g.V(${toProp}))`;
+    this.props[label] = edge.schema.label;
+    this.props[fromProp] = from;
+    this.props[toProp] = to;
 
     return this;
   }
@@ -35,14 +54,30 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
-  public get(id: string): QueryBuilder<T> {
+  public deleteV(vertex: IVertex<T>,id: string): QueryBuilder<T> {
+    if (this.query) {
+      throw new Error('deleteV must be used as the first call.');
+    }
+
+    const label = this.getProp();
+    const idProp = this.getProp();
+    this.query = `g.V(${idProp}).has('label', ${label}).drop()`;
+    this.props[label] = vertex.schema.label;
+    this.props[idProp] = id;
+
+    return this;
+  }
+
+  public getV(vertex: IVertex<T>, id: string): QueryBuilder<T> {
     if (this.query) {
       throw new Error('getAll must be used as the first call.');
     }
 
+    const label = this.getProp();
     const idProp = this.getProp();
-    this.query = `g.V(${idProp}).as('x')`
+    this.query = `g.V(${idProp}).as('x').has('label', ${label})`
     this.postfix = `.select('x')`;
+    this.props[label] = vertex.schema.label;
     this.props[idProp] = id;
 
     return this;
@@ -57,6 +92,20 @@ export class QueryBuilder<T = {}> {
     this.query = `g.V().as('x').has('label', ${label})`;
     this.postfix = `.select('x')`;
     this.props[label] = node.schema.label;
+
+    return this;
+  }
+
+  public has<T2>(prop: keyof T, value: T2): QueryBuilder<T> {
+    if (!this.query) {
+      throw new Error('has can not be used as the first call.');
+    }
+
+    const label = this.getProp();
+    const valueProp = this.getProp();
+    this.query = `${this.query}.has(${label}, ${valueProp})`;
+    this.props[label] = prop;
+    this.props[valueProp] = value;
 
     return this;
   }

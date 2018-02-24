@@ -1,10 +1,10 @@
 import { IEdgeSchema } from './Schema';
 
-export interface IEdge {
-  schema: IEdgeSchema;
+export interface IEdge<T = void> {
+  schema: IEdgeSchema<T>;
 }
 
-export class Edge {
-  public constructor(public schema: IEdgeSchema) {
+export class Edge<T = void> {
+  public constructor(public schema: IEdgeSchema<T>) {
   }
 }
