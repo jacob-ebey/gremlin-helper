@@ -17,7 +17,7 @@ export const defaultTypeOps: ModelTypeOps = {
       result.value = null;
     }
     
-    return result;
+    return Promise.resolve(result);
   },
 
   'number': (_: any, value: any) => {
@@ -31,6 +31,6 @@ export const defaultTypeOps: ModelTypeOps = {
       result.value = null;
     }
     
-    return result;
+    return Promise.resolve(result);
   },
 }

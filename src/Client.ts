@@ -55,7 +55,7 @@ export class Client implements IClient {
   }
 
   public async addVAsync<T>(vertex: IVertex<T>, obj: T): Promise<Result<T>> {
-    const { errors, hasErrors, model } = vertex.process(obj);
+    const { errors, hasErrors, model } = await vertex.processAsync(obj);
 
     if (hasErrors) throw {
       ...(errors as any),

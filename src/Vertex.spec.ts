@@ -60,8 +60,8 @@ export class VertexTests {
   @Test()
   @TestCase(null)
   @TestCase(undefined)
-  public processFailsForNull(value: null | undefined) {
-    const result = userVertex.process(value);
+  public async processFailsForNull(value: null | undefined) {
+    const result = await userVertex.processAsync(value);
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
@@ -77,8 +77,8 @@ export class VertexTests {
     username: 100,
     password: 'rofl',
   }, 'username')
-  public processFailsForTypeMissmatch(value: null | undefined, wrongKey: string) {
-    const result = userVertex.process(value);
+  public async processFailsForTypeMissmatch(value: null | undefined, wrongKey: string) {
+    const result = await userVertex.processAsync(value);
 
     Expect(result.hasErrors).toBe(true);
     Expect(result.errors).toBeDefined();
@@ -119,8 +119,8 @@ export class VertexTests {
       password: 'rofl'
     }
   )
-  public processSucceeds(value: any, expected: any) {
-    const result = userVertex.process(value);
+  public async processSucceeds(value: any, expected: any) {
+    const result = await userVertex.processAsync(value);
 
     Expect(result.errors).toBeNull();
     Expect(result.model).toEqual(expected);

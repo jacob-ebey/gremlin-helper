@@ -9,7 +9,7 @@ export interface IOpResult<T> {
   value: T | null;
 }
 
-export type Op<T> = (prop: IPropDef, value: T) => IOpResult<T>;
+export type Op<T> = (prop: IPropDef, value: T) => Promise<IOpResult<T>>;
 
 export type ModelOps<T> = {
   [P in keyof T]?: Op<T[P]>;
@@ -17,14 +17,14 @@ export type ModelOps<T> = {
 
 export class Ops {
   public static merge = <T>(...ops: Op<T>[]): Op<T> => {
-    return (prop: IPropDef, value: T) => {
+    return async (prop: IPropDef, value: T) => {
       let result: IOpResult<T> = {
         error: null,
         value
       };
 
       for (const op of ops) {
-        result = op(prop, result.value);
+        result = await op(prop, result.value);
 
         if (result.error) break;
       }
@@ -33,12 +33,12 @@ export class Ops {
     };
   }
 
-  public static trim: Op<string> = (_: IPropDef, value: string) => ({
+  public static trim: Op<string> = (_: IPropDef, value: string) => Promise.resolve({
     error: null,
     value: value ? value.trim() : value
   });
 
-  public static formatPhone: Op<string> = (_: IPropDef, value: string) => ({
+  public static formatPhone: Op<string> = (_: IPropDef, value: string) => Promise.resolve({
     error: null,
     value: value ? phoneUtil.format(phoneUtil.parseAndKeepRawInput(value, 'US'), PhoneNumberFormat.INTERNATIONAL) : value
   });
@@ -54,6 +54,6 @@ export class Ops {
       result.value = result.error ? null : value;
     }
 
-    return result;
+    return Promise.resolve(result);
   };
 }

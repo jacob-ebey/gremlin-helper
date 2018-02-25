@@ -13,7 +13,7 @@ export interface ProcessResult<T> {
 export interface IVertex<T = void> {
   schema: IVertexSchema<T>;
   ops: ModelOps<T>;
-  process(obj: any): ProcessResult<T>
+  processAsync(obj: any): Promise<ProcessResult<T>>
 }
 
 export class Vertex<T = void> implements IVertex<T> {
@@ -22,7 +22,7 @@ export class Vertex<T = void> implements IVertex<T> {
 
   public ops: ModelOps<T>;
 
-  public process(obj: any): ProcessResult<T> {
+  public async processAsync(obj: any): Promise<ProcessResult<T>> {
     const result: any = {
       hasErrors: false,
       errors: {},
@@ -44,7 +44,7 @@ export class Vertex<T = void> implements IVertex<T> {
       let value = key in obj ? obj[key] : undefined;
 
       if (this.types && prop.type in this.types) {
-        const opResult = this.types[prop.type](prop, value);
+        const opResult = await this.types[prop.type](prop, value);
 
         if (opResult.error) {
           result.hasErrors = true;
@@ -57,7 +57,7 @@ export class Vertex<T = void> implements IVertex<T> {
       }
 
       if (this.ops && key in this.ops && typeof this.ops[key] === 'function') {
-        const opResult = this.ops[key](prop, value);
+        const opResult = await this.ops[key](prop, value);
 
         if (opResult.error) {
           result.hasErrors = true;
