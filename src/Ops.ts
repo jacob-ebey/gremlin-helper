@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import { PhoneNumberUtil, PhoneNumberFormat } from 'google-libphonenumber';
 
 import { IPropDef } from './Schema';
@@ -56,4 +57,15 @@ export class Ops {
 
     return Promise.resolve(result);
   };
+
+  public static hashPassword = (saltOrRounds: string | number): Op<string> => {
+    return async (_: IPropDef, value: string) => {
+      const hashed = await bcrypt.hash(value, saltOrRounds)
+      
+      return {
+        error: null,
+        value: hashed
+      };
+    };
+  }
 }
