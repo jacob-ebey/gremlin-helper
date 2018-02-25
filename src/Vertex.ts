@@ -36,47 +36,49 @@ export class Vertex<T = void> implements IVertex<T> {
       return result;
     }
 
-    for (const key in this.schema.props) {
-      const prop: IPropDef = typeof this.schema.props[key] === 'object'
-        ? this.schema.props[key] as IPropDef
-        : { type: this.schema.props[key] } as IPropDef;
+    if (this.schema.props) {
+      for (const key in this.schema.props) {
+        const prop: IPropDef = typeof (<any>this.schema.props)[key] === 'object'
+          ? (<any>this.schema.props)[key] as IPropDef
+          : { type: (<any>this.schema.props)[key] } as IPropDef;
 
-      let value = key in obj ? obj[key] : undefined;
+        let value = key in obj ? obj[key] : undefined;
 
-      if (this.types && prop.type in this.types) {
-        const opResult = await this.types[prop.type](prop, value);
+        if (this.types && prop.type in this.types) {
+          const opResult = await this.types[prop.type](prop, value);
 
-        if (opResult.error) {
+          if (opResult.error) {
+            result.hasErrors = true;
+            result.errors[key] = opResult.error;
+
+            continue;
+          }
+
+          value = opResult.value;
+        }
+
+        if (this.ops && key in this.ops && typeof (this.ops as any)[key] === 'function') {
+          const opResult = await (this.ops as any)[key](prop, value);
+
+          if (opResult.error) {
+            result.hasErrors = true;
+            result.errors[key] = opResult.error;
+
+            continue;
+          }
+
+          value = opResult.value;
+        }
+
+        if (prop.required && !value) {
           result.hasErrors = true;
-          result.errors[key] = opResult.error;
-
+          result.errors[key] = 'Required';
           continue;
         }
 
-        value = opResult.value;
-      }
-
-      if (this.ops && key in this.ops && typeof this.ops[key] === 'function') {
-        const opResult = await this.ops[key](prop, value);
-
-        if (opResult.error) {
-          result.hasErrors = true;
-          result.errors[key] = opResult.error;
-
-          continue;
+        if (value !== undefined) {
+          result.model[key] = value;
         }
-
-        value = opResult.value;
-      }
-
-      if (prop.required && !value) {
-        result.hasErrors = true;
-        result.errors[key] = 'Required';
-        continue;
-      }
-
-      if (value !== undefined) {
-        result.model[key] = value;
       }
     }
 
