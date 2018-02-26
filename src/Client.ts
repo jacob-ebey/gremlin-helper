@@ -71,6 +71,23 @@ export class Client implements IClient {
     throw new Error('No model returned');
   }
 
+  public async updateVAsync<T>(vertex: IVertex<T>, id: string, obj: T): Promise<Result<T>> {
+    const { errors, hasErrors, model } = await vertex.processAsync(obj);
+
+    if (hasErrors) throw {
+      ...(errors as any),
+      message: 'Error processing model'
+    };
+
+    const query = new QueryBuilder<T>().getV(vertex, id).properties(model);
+
+    const results = await this.executeAsync(vertex, query);
+
+    if (results && results.length > 0) return results[0];
+
+    throw new Error('No model returned');
+  }
+
   public async deleteVAsync<T>(vertex: IVertex<T>, id: string): Promise<void> {
     const query = new QueryBuilder<T>().deleteV(vertex, id);
 
