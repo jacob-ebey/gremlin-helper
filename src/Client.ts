@@ -14,6 +14,7 @@ export type Result<T> = {
 export interface IClient {
   addEAsync(edge: IEdge, from: string, to: string): Promise<void>;
   addVAsync<T>(vertex: IVertex<T>, obj: T): Promise<Result<T>>;
+  updateVAsync<T>(vertex: IVertex<T>, id: string, obj: T): Promise<Result<T>>;
   deleteVAsync<T>(vertex: IVertex<T>, id: string): Promise<void>;
   getVAsync<T>(vertex: IVertex<T>, id: string): Promise<Result<T>>;
 
