@@ -44,40 +44,42 @@ export class Vertex<T = void> implements IVertex<T> {
 
         let value = key in obj ? obj[key] : undefined;
 
-        if (this.types && prop.type in this.types) {
-          const opResult = await this.types[prop.type](prop, value);
-
-          if (opResult.error) {
-            result.hasErrors = true;
-            result.errors[key] = opResult.error;
-
-            continue;
-          }
-
-          value = opResult.value;
-        }
-
-        if (this.ops && key in this.ops && typeof (this.ops as any)[key] === 'function') {
-          const opResult = await (this.ops as any)[key](prop, value);
-
-          if (opResult.error) {
-            result.hasErrors = true;
-            result.errors[key] = opResult.error;
-
-            continue;
-          }
-
-          value = opResult.value;
-        }
-
-        if (prop.required && !value) {
-          result.hasErrors = true;
-          result.errors[key] = 'Required';
-          continue;
-        }
-
         if (value !== undefined) {
-          result.model[key] = value;
+          if (this.types && prop.type in this.types) {
+            const opResult = await this.types[prop.type](prop, value);
+
+            if (opResult.error) {
+              result.hasErrors = true;
+              result.errors[key] = opResult.error;
+
+              continue;
+            }
+
+            value = opResult.value;
+          }
+
+          if (this.ops && key in this.ops && typeof (this.ops as any)[key] === 'function') {
+            const opResult = await (this.ops as any)[key](prop, value);
+
+            if (opResult.error) {
+              result.hasErrors = true;
+              result.errors[key] = opResult.error;
+
+              continue;
+            }
+
+            value = opResult.value;
+          }
+
+          if (prop.required && !value) {
+            result.hasErrors = true;
+            result.errors[key] = 'Required';
+            continue;
+          }
+
+          if (value !== undefined) {
+            result.model[key] = value;
+          }
         }
       }
     }
