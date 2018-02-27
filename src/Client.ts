@@ -14,7 +14,7 @@ export type Result<T> = {
 export interface IClient {
   addEAsync(edge: IEdge, from: string, to: string): Promise<void>;
   addVAsync<T>(vertex: IVertex<T>, obj: T): Promise<Result<T>>;
-  updateVAsync<T>(vertex: IVertex<T>, id: string, obj: T): Promise<Result<T>>;
+  updateVAsync<T>(vertex: IVertex<T>, id: string, obj: Partial<T>): Promise<Result<T>>;
   deleteVAsync<T>(vertex: IVertex<T>, id: string): Promise<void>;
   getVAsync<T>(vertex: IVertex<T>, id: string): Promise<Result<T>>;
 
@@ -72,7 +72,7 @@ export class Client implements IClient {
     throw new Error('No model returned');
   }
 
-  public async updateVAsync<T>(vertex: IVertex<T>, id: string, obj: T): Promise<Result<T>> {
+  public async updateVAsync<T>(vertex: IVertex<T>, id: string, obj: Partial<T>): Promise<Result<T>> {
     const { errors, hasErrors, model } = await vertex.processAsync(obj);
 
     if (hasErrors) throw {
@@ -80,7 +80,7 @@ export class Client implements IClient {
       message: 'Error processing model'
     };
 
-    const query = new QueryBuilder<T>().getV(vertex, id).properties(model);
+    const query = new QueryBuilder<T>().updateV(vertex, id).properties(model);
 
     const results = await this.executeAsync(vertex, query);
 

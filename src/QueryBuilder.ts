@@ -83,6 +83,20 @@ export class QueryBuilder<T = {}> {
     return this;
   }
 
+  public updateV(vertex: IVertex<T>, id: string): QueryBuilder<T> {
+    if (this.query) {
+      throw new Error('getAll must be used as the first call.');
+    }
+
+    const label = this.getProp();
+    const idProp = this.getProp();
+    this.query = `g.V(${idProp}).has('label', ${label})`
+    this.props[label] = vertex.schema.label;
+    this.props[idProp] = id;
+
+    return this;
+  }
+
   public getAllV(node: IVertex<T>): QueryBuilder<T> {
     if (this.query) {
       throw new Error('getAll must be used as the first call.');

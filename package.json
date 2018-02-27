@@ -1,6 +1,6 @@
 {
   "name": "gremlin-helper",
-  "version": "0.0.23-alpha",
+  "version": "0.0.25-alpha",
   "description": "A wrapper around the gremlin client to introduce model validation and other useful functionality to use within a web api.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
